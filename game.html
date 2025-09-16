@@ -1,0 +1,2010 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean Legends - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a3e, #2d1b69);
+            color: white;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0,0,0,0.9);
+            padding: 15px 30px;
+            border-bottom: 3px solid #ffd700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .player-avatar {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            border: 3px solid #fff;
+        }
+
+        .player-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-bar {
+            width: 200px;
+            height: 20px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #ffd700;
+        }
+
+        .stat-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .health-fill { background: linear-gradient(90deg, #ff4444, #ff6666); }
+        .energy-fill { background: linear-gradient(90deg, #4444ff, #6666ff); }
+
+        .currency-info {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .currency-item {
+            background: rgba(255,215,0,0.2);
+            padding: 10px 15px;
+            border-radius: 8px;
+            border: 2px solid #ffd700;
+            text-align: center;
+        }
+
+        /* Main Dashboard */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+            min-height: calc(100vh - 100px);
+        }
+
+        /* Painéis */
+        .panel {
+            background: rgba(0,0,0,0.8);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel h2 {
+            color: #ffd700;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+        }
+
+        /* Painel Esquerdo - Navegação e Status */
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .location-panel {
+            text-align: center;
+        }
+
+        .current-island {
+            background: linear-gradient(45deg, #2d1b69, #4a2c7a);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 2px solid #ffd700;
+        }
+
+        .island-image {
+            font-size: 60px;
+            margin-bottom: 10px;
+        }
+
+        .teleport-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .teleport-btn {
+            background: linear-gradient(45deg, #1e3c72, #2a5298);
+            border: 2px solid #ffd700;
+            color: white;
+            padding: 15px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .teleport-btn:hover {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        /* Painel Central - Funcionalidades Principais */
+        .center-panel {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+        }
+
+        .main-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .action-card {
+            background: linear-gradient(45deg, #2d1b69, #4a2c7a);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255,215,0,0.3);
+        }
+
+        .action-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-card:hover::before {
+            left: 100%;
+        }
+
+        .action-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .content-area {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        /* Painel Direito - Inventário e Equipamentos */
+        .right-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .equipment-slots {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .equipment-slot {
+            background: rgba(255,255,255,0.1);
+            border: 2px dashed #ffd700;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .equipment-slot.equipped {
+            border-style: solid;
+            background: linear-gradient(45deg, #2d1b69, #4a2c7a);
+        }
+
+        .equipment-slot:hover {
+            background: rgba(255,215,0,0.1);
+        }
+
+        .slot-icon {
+            font-size: 30px;
+            margin-bottom: 5px;
+        }
+
+        /* Spin Wheel */
+        .spin-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spin-wheel {
+            width: 200px;
+            height: 200px;
+            border: 5px solid #ffd700;
+            border-radius: 50%;
+            margin: 20px auto;
+            position: relative;
+            background: conic-gradient(
+                #ff4444 0deg 60deg,
+                #44ff44 60deg 120deg,
+                #4444ff 120deg 180deg,
+                #ffff44 180deg 240deg,
+                #ff44ff 240deg 300deg,
+                #44ffff 300deg 360deg
+            );
+            cursor: pointer;
+            transition: transform 3s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .spin-wheel::before {
+            content: '🍎';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 40px;
+            background: rgba(0,0,0,0.8);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .spin-btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .spin-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255,215,0,0.5);
+        }
+
+        .spin-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ffd700;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+
+        .tab.active {
+            background: #ffd700;
+            color: #000;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Listas */
+        .item-list {
+            display: grid;
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .item {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid #ffd700;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .item:hover {
+            background: rgba(255,215,0,0.2);
+            transform: translateX(5px);
+        }
+
+        .item-icon {
+            font-size: 30px;
+            width: 50px;
+            text-align: center;
+        }
+
+        .item-info {
+            flex: 1;
+        }
+
+        .item-name {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .item-description {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .item-price {
+            color: #4ade80;
+            font-weight: bold;
+        }
+
+        /* Notificações */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.9);
+            border: 2px solid #ffd700;
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: white;
+            z-index: 1000;
+            animation: slideInRight 0.5s ease;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Responsivo */
+        @media (max-width: 1200px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            
+            .main-actions {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .player-info {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .main-actions {
+                grid-template-columns: 1fr;
+            }
+            
+            .equipment-slots {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animações */
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255,215,0,0.5); }
+            50% { box-shadow: 0 0 30px rgba(255,215,0,0.8); }
+        }
+
+        .glow {
+            animation: glow 2s infinite;
+        }
+
+        /* Mapa */
+        .island-marker {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: rgba(255,215,0,0.9);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            transform: translate(-50%, -50%);
+        }
+
+        .island-marker:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 0 20px rgba(255,215,0,0.8);
+        }
+
+        .island-marker.current {
+            background: #ff4444;
+            animation: pulse 2s infinite;
+        }
+
+        .island-marker.locked {
+            background: #666;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.1); }
+        }
+
+        /* Inimigos */
+        .enemy-card {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid #ff4444;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .enemy-card:hover {
+            background: rgba(255,68,68,0.2);
+            transform: translateX(5px);
+        }
+
+        .enemy-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,68,68,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .enemy-card:hover::before {
+            left: 100%;
+        }
+
+        .enemy-level {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            background: #ffd700;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Sistema de Batalha */
+        .battle-arena {
+            background: linear-gradient(135deg, #2d1b69, #4a2c7a);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .battle-arena::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+            animation: sparkle 3s linear infinite;
+        }
+
+        @keyframes sparkle {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100px); }
+        }
+
+        .battle-characters {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .character {
+            text-align: center;
+            flex: 1;
+        }
+
+        .character-avatar {
+            font-size: 80px;
+            margin-bottom: 10px;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .character-health {
+            width: 200px;
+            height: 25px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #ffd700;
+            margin: 0 auto;
+        }
+
+        .health-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff6666);
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .battle-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .battle-btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #000;
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .battle-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255,215,0,0.5);
+        }
+
+        .battle-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Minigame */
+        .minigame-container {
+            background: rgba(0,0,0,0.9);
+            border: 3px solid #ffd700;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .timing-bar {
+            width: 100%;
+            height: 30px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .timing-indicator {
+            width: 20px;
+            height: 100%;
+            background: #ffd700;
+            position: absolute;
+            left: 0;
+            animation: moveIndicator 2s linear infinite;
+        }
+
+        @keyframes moveIndicator {
+            0% { left: 0; }
+            100% { left: calc(100% - 20px); }
+        }
+
+        .success-zone {
+            position: absolute;
+            width: 80px;
+            height: 100%;
+            background: rgba(76, 175, 80, 0.7);
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.3);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #ffd700;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #ffed4e;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="player-info">
+            <div class="player-avatar">🏴‍☠️</div>
+            <div>
+                <h2 id="playerName">Capitão Luffy</h2>
+                <div class="player-stats">
+                    <div class="stat-bar">
+                        <div class="stat-fill health-fill" id="healthBar" style="width: 100%;">❤️ 100/100</div>
+                    </div>
+                    <div class="stat-bar">
+                        <div class="stat-fill energy-fill" id="energyBar" style="width: 100%;">⚡ 50/50</div>
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">
+                    <strong id="playerLevel">Nível 1</strong> | <span style="color: #ffd700;" id="playerExp">EXP: 0/100</span> | <span style="color: #4ade80;" id="currentSea">First Sea</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="currency-info">
+            <div class="currency-item">
+                <div style="font-size: 24px;">💰</div>
+                <div><strong id="berriesAmount">1,000</strong></div>
+                <div>Berries</div>
+            </div>
+            <div class="currency-item">
+                <div style="font-size: 24px;">💎</div>
+                <div><strong id="gemsAmount">10</strong></div>
+                <div>Gems</div>
+            </div>
+            <div class="currency-item">
+                <div style="font-size: 24px;">🏆</div>
+                <div><strong id="bountyAmount">0</strong></div>
+                <div>Bounty</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Principal -->
+    <div class="dashboard">
+        <!-- Painel Esquerdo -->
+        <div class="left-panel">
+            <!-- Mapa -->
+            <div class="panel">
+                <h2>🗺️ Mapa do Mundo</h2>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 10px;">
+                        <button class="teleport-btn" onclick="changeSea(1)" id="sea1Btn" style="background: #ffd700; color: #000;">
+                            First Sea
+                        </button>
+                        <button class="teleport-btn" onclick="changeSea(2)" id="sea2Btn" style="opacity: 0.5;">
+                            Second Sea
+                        </button>
+                        <button class="teleport-btn" onclick="changeSea(3)" id="sea3Btn" style="opacity: 0.5;">
+                            Third Sea
+                        </button>
+                    </div>
+                    <div id="mapContainer" style="position: relative; width: 100%; height: 300px; background: linear-gradient(135deg, #1e3c72, #2a5298); border-radius: 10px; border: 2px solid #ffd700; overflow: hidden;">
+                        <!-- Ilhas serão renderizadas aqui -->
+                    </div>
+                </div>
+                <div style="text-align: center;">
+                    <div id="currentIslandInfo" style="background: rgba(255,215,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid #ffd700;">
+                        <h4 style="color: #ffd700;">🏝️ Ilha Starter</h4>
+                        <p>Nível Recomendado: 1-10</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inimigos Próximos -->
+            <div class="panel">
+                <h2>⚔️ Inimigos Próximos</h2>
+                <div id="enemiesContainer">
+                    <!-- Inimigos serão carregados aqui -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Central -->
+        <div class="center-panel">
+            <div class="panel">
+                <div class="main-actions">
+                    <div class="action-card" onclick="openTab('fruits')">
+                        <div class="action-icon">🍎</div>
+                        <h3>Devil Fruits</h3>
+                        <p>Girar & Equipar</p>
+                    </div>
+                    <div class="action-card" onclick="openTab('weapons')">
+                        <div class="action-icon">⚔️</div>
+                        <h3>Armas</h3>
+                        <p>Espadas & Guns</p>
+                    </div>
+                    <div class="action-card" onclick="openTab('fighting')">
+                        <div class="action-icon">🥊</div>
+                        <h3>Fighting Style</h3>
+                        <p>Kung Fu & Boxe</p>
+                    </div>
+                    <div class="action-card" onclick="openTab('haki')">
+                        <div class="action-icon">⚡</div>
+                        <h3>Haki</h3>
+                        <p>Treinar Poderes</p>
+                    </div>
+                    <div class="action-card" onclick="openTab('quests')">
+                        <div class="action-icon">📜</div>
+                        <h3>Quests</h3>
+                        <p>Missões & Raids</p>
+                    </div>
+                    <div class="action-card" onclick="openTab('battle')">
+                        <div class="action-icon">⚔️</div>
+                        <h3>Batalha</h3>
+                        <p>Lutar & Ganhar EXP</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="content-area" id="contentArea">
+                    <!-- Conteúdo das abas será carregado aqui -->
+                    <div style="text-align: center; padding: 50px;">
+                        <h2 style="color: #ffd700;">🌊 Bem-vindo ao Ocean Legends!</h2>
+                        <p style="margin-top: 20px; font-size: 18px;">Selecione uma opção acima para começar sua aventura pirata!</p>
+                        <div style="margin-top: 30px; font-size: 60px;">🏴‍☠️</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Direito -->
+        <div class="right-panel">
+            <!-- Equipamentos -->
+            <div class="panel">
+                <h2>🎒 Equipamentos</h2>
+                <div class="equipment-slots">
+                    <div class="equipment-slot equipped" onclick="changeEquipment('fruit')">
+                        <div class="slot-icon">🍎</div>
+                        <div><strong>Gomu Gomu</strong></div>
+                        <div style="font-size: 12px;">Fruta da Borracha</div>
+                    </div>
+                    <div class="equipment-slot equipped" onclick="changeEquipment('weapon')">
+                        <div class="slot-icon">⚔️</div>
+                        <div><strong>Katana</strong></div>
+                        <div style="font-size: 12px;">Dano: 850</div>
+                    </div>
+                    <div class="equipment-slot" onclick="changeEquipment('fighting')">
+                        <div class="slot-icon">🥊</div>
+                        <div>Fighting Style</div>
+                        <div style="font-size: 12px;">Não equipado</div>
+                    </div>
+                    <div class="equipment-slot" onclick="changeEquipment('boat')">
+                        <div class="slot-icon">⛵</div>
+                        <div>Barco</div>
+                        <div style="font-size: 12px;">Não equipado</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estatísticas -->
+            <div class="panel">
+                <h2>📊 Estatísticas</h2>
+                <div style="display: grid; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                        <span>💪 Força:</span>
+                        <span style="color: #ffd700;"><strong id="strengthStat">10</strong></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                        <span>🛡️ Defesa:</span>
+                        <span style="color: #ffd700;"><strong id="defenseStat">8</strong></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                        <span>⚡ Velocidade:</span>
+                        <span style="color: #ffd700;"><strong id="speedStat">12</strong></span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                        <span>🎯 Precisão:</span>
+                        <span style="color: #ffd700;"><strong id="accuracyStat">5</strong></span>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px; text-align: center;">
+                    <button class="spin-btn" onclick="upgradeStats()" style="width: 100%; padding: 10px;">
+                        ⬆️ Melhorar Stats
+                    </button>
+                </div>
+            </div>
+
+            <!-- Códigos -->
+            <div class="panel">
+                <h2>🎁 Códigos</h2>
+                <div style="margin-bottom: 15px;">
+                    <input type="text" id="codeInput" placeholder="Digite o código aqui..." 
+                           style="width: 100%; padding: 10px; border: 2px solid #ffd700; border-radius: 5px; background: rgba(0,0,0,0.5); color: white;">
+                </div>
+                <button class="spin-btn" onclick="redeemCode()" style="width: 100%; padding: 10px;">
+                    ✅ Resgatar Código
+                </button>
+                <div style="margin-top: 15px; font-size: 12px; color: #ccc;">
+                    <p><strong>Códigos Ativos:</strong></p>
+                    <p>• NEWPLAYER - 100K Berries</p>
+                    <p>• FREEFRUIT - Fruta Aleatória</p>
+                    <p>• POWERUP - 50K EXP</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estado do jogo
+        let gameData = {
+            player: {
+                name: 'Capitão Luffy',
+                level: 1,
+                exp: 0,
+                maxExp: 100,
+                health: 100,
+                maxHealth: 100,
+                energy: 50,
+                maxEnergy: 50,
+                berries: 1000,
+                gems: 10,
+                bounty: 0,
+                currentSea: 1,
+                stats: {
+                    strength: 10,
+                    defense: 8,
+                    speed: 12,
+                    accuracy: 5
+                }
+            },
+            equipment: {
+                fruit: { name: 'Gomu Gomu', type: 'Paramecia', equipped: true },
+                weapon: { name: 'Katana Lendária', damage: 850, equipped: true },
+                fighting: null,
+                boat: null
+            },
+            inventory: {
+                fruits: [
+                    { name: 'Mera Mera no Mi', type: 'Logia', rarity: 'Lendária', icon: '🔥' },
+                    { name: 'Hie Hie no Mi', type: 'Logia', rarity: 'Lendária', icon: '❄️' },
+                    { name: 'Pika Pika no Mi', type: 'Logia', rarity: 'Mítica', icon: '💡' }
+                ],
+                weapons: [
+                    { name: 'Espada Flamejante', damage: 750, rarity: 'Épica', icon: '🔥⚔️' },
+                    { name: 'Pistola Dourada', damage: 600, rarity: 'Rara', icon: '🔫' }
+                ]
+            },
+            location: {
+                current: 'Ilha Starter',
+                currentIslandData: null
+            },
+            seas: {
+                1: {
+                    name: 'First Sea',
+                    requiredLevel: 1,
+                    islands: [
+                        { 
+                            name: 'Ilha Starter', 
+                            icon: '🏝️', 
+                            level: '1-10', 
+                            x: 150, 
+                            y: 200,
+                            enemies: [
+                                { name: 'Bandido', level: 2, health: 50, reward: { exp: 15, berries: 25 }, icon: '🔪' },
+                                { name: 'Pirata Novato', level: 5, health: 80, reward: { exp: 25, berries: 50 }, icon: '🏴‍☠️' },
+                                { name: 'Capitão Bandido', level: 8, health: 120, reward: { exp: 40, berries: 100 }, icon: '👑' }
+                            ]
+                        },
+                        { 
+                            name: 'Ilha Jungle', 
+                            icon: '🌴', 
+                            level: '10-25', 
+                            x: 300, 
+                            y: 150,
+                            enemies: [
+                                { name: 'Gorila Selvagem', level: 12, health: 150, reward: { exp: 50, berries: 75 }, icon: '🦍' },
+                                { name: 'Caçador', level: 18, health: 200, reward: { exp: 75, berries: 125 }, icon: '🏹' },
+                                { name: 'Rei da Selva', level: 25, health: 350, reward: { exp: 150, berries: 300 }, icon: '🦁' }
+                            ]
+                        },
+                        { 
+                            name: 'Ilha Deserto', 
+                            icon: '🏜️', 
+                            level: '25-40', 
+                            x: 450, 
+                            y: 250,
+                            enemies: [
+                                { name: 'Escorpião', level: 28, health: 280, reward: { exp: 100, berries: 150 }, icon: '🦂' },
+                                { name: 'Nômade', level: 35, health: 400, reward: { exp: 140, berries: 250 }, icon: '🐪' },
+                                { name: 'Faraó', level: 40, health: 600, reward: { exp: 200, berries: 500 }, icon: '👑' }
+                            ]
+                        }
+                    ]
+                },
+                2: {
+                    name: 'Second Sea',
+                    requiredLevel: 50,
+                    islands: [
+                        { 
+                            name: 'Ilha Vulcão', 
+                            icon: '🌋', 
+                            level: '50-70', 
+                            x: 200, 
+                            y: 180,
+                            enemies: [
+                                { name: 'Salamandra', level: 52, health: 800, reward: { exp: 300, berries: 600 }, icon: '🦎' },
+                                { name: 'Demônio do Fogo', level: 65, health: 1200, reward: { exp: 450, berries: 900 }, icon: '👹' }
+                            ]
+                        },
+                        { 
+                            name: 'Ilha Gelo', 
+                            icon: '❄️', 
+                            level: '70-90', 
+                            x: 400, 
+                            y: 120,
+                            enemies: [
+                                { name: 'Yeti', level: 75, health: 1500, reward: { exp: 500, berries: 1000 }, icon: '🐻‍❄️' },
+                                { name: 'Rei do Gelo', level: 90, health: 2500, reward: { exp: 800, berries: 1800 }, icon: '👑' }
+                            ]
+                        }
+                    ]
+                },
+                3: {
+                    name: 'Third Sea',
+                    requiredLevel: 100,
+                    islands: [
+                        { 
+                            name: 'Ilha Céu', 
+                            icon: '☁️', 
+                            level: '100-150', 
+                            x: 250, 
+                            y: 100,
+                            enemies: [
+                                { name: 'Anjo Guardião', level: 110, health: 3500, reward: { exp: 1000, berries: 2500 }, icon: '👼' },
+                                { name: 'Deus do Trovão', level: 150, health: 8000, reward: { exp: 2000, berries: 5000 }, icon: '⚡' }
+                            ]
+                        }
+                    ]
+                }
+            },
+            battle: {
+                inBattle: false,
+                currentEnemy: null,
+                playerTurn: true,
+                minigameActive: false
+            }
+        };
+
+        // Função para abrir abas
+        function openTab(tabName) {
+            const contentArea = document.getElementById('contentArea');
+            
+            switch(tabName) {
+                case 'fruits':
+                    contentArea.innerHTML = createFruitsContent();
+                    break;
+                case 'weapons':
+                    contentArea.innerHTML = createWeaponsContent();
+                    break;
+                case 'fighting':
+                    contentArea.innerHTML = createFightingContent();
+                    break;
+                case 'haki':
+                    contentArea.innerHTML = createHakiContent();
+                    break;
+                case 'quests':
+                    contentArea.innerHTML = createQuestsContent();
+                    break;
+                case 'battle':
+                    contentArea.innerHTML = createBattleContent();
+                    break;
+            }
+        }
+
+        // Conteúdo das Devil Fruits
+        function createFruitsContent() {
+            return `
+                <h2 style="color: #ffd700; text-align: center;">🍎 Devil Fruits</h2>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px;">
+                    <div>
+                        <h3 style="color: #ffd700; margin-bottom: 15px;">🎰 Girar Frutas</h3>
+                        <div class="spin-container">
+                            <div class="spin-wheel" id="fruitWheel" onclick="spinFruit()"></div>
+                            <button class="spin-btn" id="spinBtn" onclick="spinFruit()">
+                                🎲 Girar (10,000 Berries)
+                            </button>
+                            <p style="margin-top: 10px; font-size: 14px; color: #ccc;">
+                                Chance de frutas raras: 5%<br>
+                                Chance de frutas lendárias: 1%
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="color: #ffd700; margin-bottom: 15px;">📦 Suas Frutas</h3>
+                        <div class="item-list">
+                            ${gameData.inventory.fruits.map(fruit => `
+                                <div class="item" onclick="equipFruit('${fruit.name}')">
+                                    <div class="item-icon">${fruit.icon}</div>
+                                    <div class="item-info">
+                                        <div class="item-name">${fruit.name}</div>
+                                        <div class="item-description">${fruit.type} - ${fruit.rarity}</div>
+                                    </div>
+                                    <button style="background: #ffd700; color: #000; border: none; padding: 5px 10px; border-radius: 5px;">
+                                        Equipar
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Conteúdo das Armas
+        function createWeaponsContent() {
+            return `
+                <h2 style="color: #ffd700; text-align: center;">⚔️ Arsenal de Armas</h2>
+                
+                <div class="tabs" style="margin-top: 20px;">
+                    <button class="tab active" onclick="switchWeaponTab('swords')">🗡️ Espadas</button>
+                    <button class="tab" onclick="switchWeaponTab('guns')">🔫 Armas de Fogo</button>
+                    <button class="tab" onclick="switchWeaponTab('special')">✨ Especiais</button>
+                </div>
+                
+                <div id="weaponTabContent">
+                    <div class="item-list" style="margin-top: 20px;">
+                        ${gameData.inventory.weapons.map(weapon => `
+                            <div class="item" onclick="equipWeapon('${weapon.name}')">
+                                <div class="item-icon">${weapon.icon}</div>
+                                <div class="item-info">
+                                    <div class="item-name">${weapon.name}</div>
+                                    <div class="item-description">Dano: ${weapon.damage} - ${weapon.rarity}</div>
+                                </div>
+                                <button style="background: #ffd700; color: #000; border: none; padding: 5px 10px; border-radius: 5px;">
+                                    Equipar
+                                </button>
+                            </div>
+                        `).join('')}
+                        
+                        <div class="item" onclick="buyWeapon('legendary')">
+                            <div class="item-icon">⚔️</div>
+                            <div class="item-info">
+                                <div class="item-name">Espada Lendária</div>
+                                <div class="item-description">Dano: 1200 - Lendária</div>
+                            </div>
+                            <div class="item-price">500,000 💰</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Conteúdo Fighting Styles
+        function createFightingContent() {
+            return `
+                <h2 style="color: #ffd700; text-align: center;">🥊 Estilos de Luta</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 20px;">
+                    <div class="action-card" onclick="learnFighting('kungfu')">
+                        <div class="action-icon">🐉</div>
+                        <h3>Kung Fu</h3>
+                        <p>Golpes rápidos e precisos</p>
+                        <div style="color: #4ade80; margin-top: 10px;">50,000 💰</div>
+                    </div>
+                    
+                    <div class="action-card" onclick="learnFighting('boxing')">
+                        <div class="action-icon">🥊</div>
+                        <h3>Boxe</h3>
+                        <p>Socos poderosos</p>
+                        <div style="color: #4ade80; margin-top: 10px;">75,000 💰</div>
+                    </div>
+                    
+                    <div class="action-card" onclick="learnFighting('superhuman')">
+                        <div class="action-icon">💪</div>
+                        <h3>Super Humano</h3>
+                        <p>Força sobre-humana</p>
+                        <div style="color: #4ade80; margin-top: 10px;">200,000 💰</div>
+                    </div>
+                    
+                    <div class="action-card" onclick="learnFighting('rokushiki')">
+                        <div class="action-icon">⚡</div>
+                        <h3>Rokushiki</h3>
+                        <p>Técnicas da Marinha</p>
+                        <div style="color: #4ade80; margin-top: 10px;">500,000 💰</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: center;">
+                    <h3 style="color: #ffd700;">🎯 Treinar Combos</h3>
+                    <p style="margin: 10px 0;">Combine diferentes estilos para criar combos únicos!</p>
+                    <button class="spin-btn" onclick="trainCombos()">
+                        🥋 Treinar Combos (25,000 💰)
+                    </button>
+                </div>
+            `;
+        }
+
+        // Conteúdo Haki
+        function createHakiContent() {
+            return `
+                <h2 style="color: #ffd700; text-align: center;">⚡ Treinamento de Haki</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 20px;">
+                    <div class="panel" style="text-align: center;">
+                        <h3 style="color: #ff6b6b;">🛡️ Busoshoku Haki</h3>
+                        <div style="font-size: 40px; margin: 15px 0;">💪</div>
+                        <p>Nível: 7/10</p>
+                        <div style="background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; margin: 10px 0;">
+                            <div style="background: #ff6b6b; height: 100%; width: 70%; border-radius: 5px;"></div>
+                        </div>
+                        <button class="teleport-btn" onclick="trainHaki('busoshoku')" style="width: 100%;">
+                            Treinar (15,000 💰)
+                        </button>
+                    </div>
+                    
+                    <div class="panel" style="text-align: center;">
+                        <h3 style="color: #4ecdc4;">👁️ Kenbunshoku Haki</h3>
+                        <div style="font-size: 40px; margin: 15px 0;">🔮</div>
+                        <p>Nível: 5/10</p>
+                        <div style="background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; margin: 10px 0;">
+                            <div style="background: #4ecdc4; height: 100%; width: 50%; border-radius: 5px;"></div>
+                        </div>
+                        <button class="teleport-btn" onclick="trainHaki('kenbunshoku')" style="width: 100%;">
+                            Treinar (20,000 💰)
+                        </button>
+                    </div>
+                    
+                    <div class="panel" style="text-align: center;">
+                        <h3 style="color: #ffd700;">👑 Haoshoku Haki</h3>
+                        <div style="font-size: 40px; margin: 15px 0;">⚡</div>
+                        <p>Nível: 2/10</p>
+                        <div style="background: rgba(255,255,255,0.1); height: 10px; border-radius: 5px; margin: 10px 0;">
+                            <div style="background: #ffd700; height: 100%; width: 20%; border-radius: 5px;"></div>
+                        </div>
+                        <button class="teleport-btn" onclick="trainHaki('haoshoku')" style="width: 100%;">
+                            Treinar (50,000 💰)
+                        </button>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 30px; text-align: center; background: rgba(255,215,0,0.1); padding: 20px; border-radius: 10px;">
+                    <h3 style="color: #ffd700;">🌟 Despertar Haki</h3>
+                    <p>Desbloqueie o verdadeiro poder do seu Haki!</p>
+                    <button class="spin-btn" onclick="awakenHaki()" style="margin-top: 15px;">
+                        ✨ Despertar (1,000,000 💰)
+                    </button>
+                </div>
+            `;
+        }
+
+        // Conteúdo Quests
+        function createQuestsContent() {
+            return `
+                <h2 style="color: #ffd700; text-align: center;">📜 Missões & Raids</h2>
+                
+                <div class="tabs" style="margin-top: 20px;">
+                    <button class="tab active" onclick="switchQuestTab('daily')">📅 Diárias</button>
+                    <button class="tab" onclick="switchQuestTab('story')">📖 História</button>
+                    <button class="tab" onclick="switchQuestTab('raids')">🌋 Raids</button>
+                    <button class="tab" onclick="switchQuestTab('bosses')">👹 Bosses</button>
+                </div>
+                
+                <div id="questTabContent" style="margin-top: 20px;">
+                    <div class="item-list">
+                        <div class="item" onclick="acceptQuest('daily1')">
+                            <div class="item-icon">🏴‍☠️</div>
+                            <div class="item-info">
+                                <div class="item-name">Derrote 20 Bandidos</div>
+                                <div class="item-description">Recompensa: 15,000 EXP + 50,000 💰</div>
+                            </div>
+                            <button style="background: #4ade80; color: #000; border: none; padding: 5px 10px; border-radius: 5px;">
+                                Aceitar
+                            </button>
+                        </div>
+                        
+                        <div class="item" onclick="acceptQuest('boss1')">
+                            <div class="item-icon">👹</div>
+                            <div class="item-info">
+                                <div class="item-name">Boss: Rei dos Macacos</div>
+                                <div class="item-description">Recompensa: 100,000 EXP + Fruta Rara</div>
+                            </div>
+                            <button style="background: #ff6b6b; color: white; border: none; padding: 5px 10px; border-radius: 5px;">
+                                Difícil
+                            </button>
+                        </div>
+                        
+                        <div class="item" onclick="acceptQuest('raid1')">
+                            <div class="item-icon">🌋</div>
+                            <div class="item-info">
+                                <div class="item-name">Raid: Ilha do Vulcão</div>
+                                <div class="item-description">Recompensa: 500,000 EXP + Arma Lendária</div>
+                            </div>
+                            <button style="background: #ffd700; color: #000; border: none; padding: 5px 10px; border-radius: 5px;">
+                                Lendário
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Conteúdo de Batalha
+        function createBattleContent() {
+            if (gameData.battle.inBattle) {
+                return createBattleArena();
+            } else {
+                return `
+                    <h2 style="color: #ffd700; text-align: center;">⚔️ Sistema de Batalha</h2>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <div style="font-size: 60px; margin-bottom: 20px;">🏴‍☠️</div>
+                        <h3 style="color: #ffd700;">Selecione um inimigo no painel esquerdo para começar a batalha!</h3>
+                        <p style="margin-top: 15px; color: #ccc;">
+                            Derrote inimigos para ganhar EXP, Berries e itens raros.<br>
+                            Quanto maior o nível do inimigo, mais difícil será o minigame!
+                        </p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px;">
+                        <div class="panel" style="text-align: center;">
+                            <h4 style="color: #4ade80;">💡 Dicas de Batalha</h4>
+                            <ul style="text-align: left; margin-top: 15px; color: #ccc;">
+                                <li>Use o timing perfeito no minigame para dano crítico</li>
+                                <li>Inimigos de nível alto dão mais recompensas</li>
+                                <li>Sua força afeta o dano base</li>
+                                <li>Defesa reduz o dano recebido</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="panel" style="text-align: center;">
+                            <h4 style="color: #ffd700;">🏆 Recompensas</h4>
+                            <ul style="text-align: left; margin-top: 15px; color: #ccc;">
+                                <li>EXP para subir de nível</li>
+                                <li>Berries para comprar itens</li>
+                                <li>Chance de drop de frutas</li>
+                                <li>Bounty por derrotar inimigos</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function createBattleArena() {
+            const enemy = gameData.battle.currentEnemy;
+            const playerHealthPercent = (gameData.player.health / gameData.player.maxHealth) * 100;
+            const enemyHealthPercent = (enemy.currentHealth / enemy.health) * 100;
+            
+            return `
+                <div class="battle-arena">
+                    <h2 style="color: #ffd700; margin-bottom: 20px;">⚔️ Batalha em Andamento</h2>
+                    
+                    <div class="battle-characters">
+                        <div class="character">
+                            <div class="character-avatar">🏴‍☠️</div>
+                            <h3 style="color: #ffd700;">${gameData.player.name}</h3>
+                            <div class="character-health">
+                                <div class="health-bar" style="width: ${playerHealthPercent}%;">
+                                    ${gameData.player.health}/${gameData.player.maxHealth}
+                                </div>
+                            </div>
+                            <p style="margin-top: 10px;">Nível ${gameData.player.level}</p>
+                        </div>
+                        
+                        <div style="font-size: 40px; color: #ffd700;">⚡VS⚡</div>
+                        
+                        <div class="character">
+                            <div class="character-avatar">${enemy.icon}</div>
+                            <h3 style="color: #ff4444;">${enemy.name}</h3>
+                            <div class="character-health">
+                                <div class="health-bar" style="width: ${enemyHealthPercent}%;">
+                                    ${enemy.currentHealth}/${enemy.health}
+                                </div>
+                            </div>
+                            <p style="margin-top: 10px;">Nível ${enemy.level}</p>
+                        </div>
+                    </div>
+                    
+                    ${gameData.battle.minigameActive ? createMinigame() : createBattleActions()}
+                </div>
+            `;
+        }
+
+        function createMinigame() {
+            return `
+                <div class="minigame-container">
+                    <h3 style="color: #ffd700; margin-bottom: 20px;">🎯 Acerte o Timing!</h3>
+                    <p style="color: #ccc; margin-bottom: 20px;">Clique quando o indicador estiver na zona verde!</p>
+                    
+                    <div class="timing-bar" id="timingBar">
+                        <div class="success-zone"></div>
+                        <div class="timing-indicator" id="timingIndicator"></div>
+                    </div>
+                    
+                    <button class="battle-btn" onclick="checkTiming()" style="width: 200px;">
+                        🎯 ATACAR!
+                    </button>
+                </div>
+            `;
+        }
+
+        function createBattleActions() {
+            return `
+                <div class="battle-actions">
+                    <button class="battle-btn" onclick="playerAttack()">
+                        ⚔️ Atacar
+                    </button>
+                    <button class="battle-btn" onclick="playerDefend()">
+                        🛡️ Defender
+                    </button>
+                    <button class="battle-btn" onclick="useSpecial()">
+                        ✨ Especial
+                    </button>
+                    <button class="battle-btn" onclick="runAway()">
+                        🏃 Fugir
+                    </button>
+                </div>
+            `;
+        }
+
+        // Conteúdo da Loja (removido para economizar espaço)
+        function createShopContent() {
+            return `
+                <h2 style="color: #ffd700; text-align: center;">🏪 Loja do Mercador</h2>
+                
+                <div class="tabs" style="margin-top: 20px;">
+                    <button class="tab active" onclick="switchShopTab('fruits')">🍎 Frutas</button>
+                    <button class="tab" onclick="switchShopTab('weapons')">⚔️ Armas</button>
+                    <button class="tab" onclick="switchShopTab('boats')">⛵ Barcos</button>
+                    <button class="tab" onclick="switchShopTab('accessories')">💍 Acessórios</button>
+                </div>
+                
+                <div id="shopTabContent" style="margin-top: 20px;">
+                    <div class="item-list">
+                        <div class="item" onclick="buyItem('yami', 5000000)">
+                            <div class="item-icon">🌑</div>
+                            <div class="item-info">
+                                <div class="item-name">Yami Yami no Mi</div>
+                                <div class="item-description">Fruta da Escuridão - Logia</div>
+                            </div>
+                            <div class="item-price">5,000,000 💰</div>
+                        </div>
+                        
+                        <div class="item" onclick="buyItem('gura', 8000000)">
+                            <div class="item-icon">💥</div>
+                            <div class="item-info">
+                                <div class="item-name">Gura Gura no Mi</div>
+                                <div class="item-description">Fruta do Tremor - Paramecia</div>
+                            </div>
+                            <div class="item-price">8,000,000 💰</div>
+                        </div>
+                        
+                        <div class="item" onclick="buyItem('ship', 2000000)">
+                            <div class="item-icon">🚢</div>
+                            <div class="item-info">
+                                <div class="item-name">Navio de Guerra</div>
+                                <div class="item-description">Capacidade: 20 jogadores</div>
+                            </div>
+                            <div class="item-price">2,000,000 💰</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Funções principais do jogo
+        
+        // Inicializar o jogo
+        function initializeGame() {
+            updatePlayerUI();
+            renderMap();
+            loadEnemies();
+            updateSeaAccess();
+        }
+
+        // Atualizar interface do jogador
+        function updatePlayerUI() {
+            document.getElementById('playerLevel').textContent = `Nível ${gameData.player.level}`;
+            document.getElementById('playerExp').textContent = `EXP: ${gameData.player.exp}/${gameData.player.maxExp}`;
+            document.getElementById('currentSea').textContent = gameData.seas[gameData.player.currentSea].name;
+            
+            const healthPercent = (gameData.player.health / gameData.player.maxHealth) * 100;
+            const energyPercent = (gameData.player.energy / gameData.player.maxEnergy) * 100;
+            
+            document.getElementById('healthBar').style.width = `${healthPercent}%`;
+            document.getElementById('healthBar').textContent = `❤️ ${gameData.player.health}/${gameData.player.maxHealth}`;
+            
+            document.getElementById('energyBar').style.width = `${energyPercent}%`;
+            document.getElementById('energyBar').textContent = `⚡ ${gameData.player.energy}/${gameData.player.maxEnergy}`;
+            
+            updateCurrency();
+            updateStats();
+        }
+
+        // Renderizar mapa
+        function renderMap() {
+            const mapContainer = document.getElementById('mapContainer');
+            const currentSea = gameData.seas[gameData.player.currentSea];
+            
+            mapContainer.innerHTML = '';
+            
+            currentSea.islands.forEach(island => {
+                const marker = document.createElement('div');
+                marker.className = 'island-marker';
+                marker.style.left = `${island.x}px`;
+                marker.style.top = `${island.y}px`;
+                marker.textContent = island.icon;
+                marker.title = `${island.name} (${island.level})`;
+                
+                if (island.name === gameData.location.current) {
+                    marker.classList.add('current');
+                }
+                
+                marker.onclick = () => teleportToIsland(island);
+                mapContainer.appendChild(marker);
+            });
+        }
+
+        // Carregar inimigos da ilha atual
+        function loadEnemies() {
+            const currentSea = gameData.seas[gameData.player.currentSea];
+            const currentIsland = currentSea.islands.find(island => island.name === gameData.location.current);
+            
+            if (!currentIsland) return;
+            
+            gameData.location.currentIslandData = currentIsland;
+            
+            const enemiesContainer = document.getElementById('enemiesContainer');
+            enemiesContainer.innerHTML = '';
+            
+            currentIsland.enemies.forEach(enemy => {
+                const enemyCard = document.createElement('div');
+                enemyCard.className = 'enemy-card';
+                enemyCard.onclick = () => startBattle(enemy);
+                
+                enemyCard.innerHTML = `
+                    <div class="enemy-level">Lv ${enemy.level}</div>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 30px;">${enemy.icon}</div>
+                        <div style="flex: 1;">
+                            <h4 style="color: #ffd700; margin: 0;">${enemy.name}</h4>
+                            <p style="margin: 5px 0; color: #ccc;">HP: ${enemy.health}</p>
+                            <p style="margin: 0; color: #4ade80; font-size: 12px;">
+                                +${enemy.reward.exp} EXP, +${enemy.reward.berries} 💰
+                            </p>
+                        </div>
+                    </div>
+                `;
+                
+                enemiesContainer.appendChild(enemyCard);
+            });
+            
+            // Atualizar info da ilha atual
+            document.getElementById('currentIslandInfo').innerHTML = `
+                <h4 style="color: #ffd700;">${currentIsland.icon} ${currentIsland.name}</h4>
+                <p>Nível Recomendado: ${currentIsland.level}</p>
+            `;
+        }
+
+        // Mudar de Sea
+        function changeSea(seaNumber) {
+            const requiredLevel = gameData.seas[seaNumber].requiredLevel;
+            
+            if (gameData.player.level < requiredLevel) {
+                showNotification(`🚫 Você precisa ser nível ${requiredLevel} para acessar ${gameData.seas[seaNumber].name}!`);
+                return;
+            }
+            
+            gameData.player.currentSea = seaNumber;
+            gameData.location.current = gameData.seas[seaNumber].islands[0].name;
+            
+            updateSeaAccess();
+            renderMap();
+            loadEnemies();
+            updatePlayerUI();
+            
+            showNotification(`🌊 Bem-vindo ao ${gameData.seas[seaNumber].name}!`);
+        }
+
+        // Atualizar acesso aos Seas
+        function updateSeaAccess() {
+            for (let i = 1; i <= 3; i++) {
+                const btn = document.getElementById(`sea${i}Btn`);
+                const requiredLevel = gameData.seas[i].requiredLevel;
+                
+                if (gameData.player.level >= requiredLevel) {
+                    btn.style.opacity = '1';
+                    btn.style.cursor = 'pointer';
+                } else {
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'not-allowed';
+                }
+                
+                if (gameData.player.currentSea === i) {
+                    btn.style.background = '#ffd700';
+                    btn.style.color = '#000';
+                } else {
+                    btn.style.background = 'linear-gradient(45deg, #1e3c72, #2a5298)';
+                    btn.style.color = 'white';
+                }
+            }
+        }
+
+        // Teleportar para ilha
+        function teleportToIsland(island) {
+            if (island.name === gameData.location.current) return;
+            
+            gameData.location.current = island.name;
+            renderMap();
+            loadEnemies();
+            showNotification(`🌊 Teleportado para ${island.name}!`);
+        }
+
+        // Iniciar batalha
+        function startBattle(enemy) {
+            if (gameData.battle.inBattle) return;
+            
+            gameData.battle.inBattle = true;
+            gameData.battle.currentEnemy = { ...enemy, currentHealth: enemy.health };
+            gameData.battle.playerTurn = true;
+            gameData.battle.minigameActive = false;
+            
+            openTab('battle');
+            showNotification(`⚔️ Batalha iniciada contra ${enemy.name}!`);
+        }
+
+        // Ações de batalha
+        function playerAttack() {
+            if (!gameData.battle.playerTurn) return;
+            
+            gameData.battle.minigameActive = true;
+            openTab('battle'); // Refresh para mostrar minigame
+        }
+
+        function checkTiming() {
+            const indicator = document.getElementById('timingIndicator');
+            const indicatorRect = indicator.getBoundingClientRect();
+            const successZone = document.querySelector('.success-zone').getBoundingClientRect();
+            
+            const isSuccess = indicatorRect.left >= successZone.left && indicatorRect.right <= successZone.right;
+            
+            let damage = Math.floor(gameData.player.stats.strength * (0.8 + Math.random() * 0.4));
+            
+            if (isSuccess) {
+                damage = Math.floor(damage * 1.5); // Dano crítico
+                showNotification('🎯 CRÍTICO! Timing perfeito!');
+            } else {
+                showNotification('💥 Acerto normal');
+            }
+            
+            gameData.battle.currentEnemy.currentHealth -= damage;
+            gameData.battle.minigameActive = false;
+            gameData.battle.playerTurn = false;
+            
+            if (gameData.battle.currentEnemy.currentHealth <= 0) {
+                winBattle();
+            } else {
+                setTimeout(enemyTurn, 1500);
+            }
+            
+            openTab('battle'); // Refresh batalha
+        }
+
+        function enemyTurn() {
+            const enemy = gameData.battle.currentEnemy;
+            let damage = Math.floor(enemy.level * 3 + Math.random() * 20);
+            damage = Math.max(1, damage - Math.floor(gameData.player.stats.defense / 2));
+            
+            gameData.player.health -= damage;
+            showNotification(`💥 ${enemy.name} causou ${damage} de dano!`);
+            
+            if (gameData.player.health <= 0) {
+                loseBattle();
+            } else {
+                gameData.battle.playerTurn = true;
+                openTab('battle');
+            }
+        }
+
+        function winBattle() {
+            const enemy = gameData.battle.currentEnemy;
+            
+            gameData.player.exp += enemy.reward.exp;
+            gameData.player.berries += enemy.reward.berries;
+            gameData.player.bounty += enemy.level * 1000;
+            
+            checkLevelUp();
+            
+            showNotification(`🏆 Vitória! +${enemy.reward.exp} EXP, +${enemy.reward.berries} 💰`);
+            
+            gameData.battle.inBattle = false;
+            gameData.battle.currentEnemy = null;
+            
+            updatePlayerUI();
+            openTab('battle');
+        }
+
+        function loseBattle() {
+            gameData.player.health = Math.floor(gameData.player.maxHealth * 0.1);
+            gameData.battle.inBattle = false;
+            gameData.battle.currentEnemy = null;
+            
+            showNotification('💀 Derrota! Você foi derrotado...');
+            updatePlayerUI();
+            openTab('battle');
+        }
+
+        function runAway() {
+            gameData.battle.inBattle = false;
+            gameData.battle.currentEnemy = null;
+            showNotification('🏃 Você fugiu da batalha!');
+            openTab('battle');
+        }
+
+        function playerDefend() {
+            showNotification('🛡️ Você se defendeu! Próximo ataque causará menos dano.');
+            gameData.battle.playerTurn = false;
+            setTimeout(enemyTurn, 1000);
+        }
+
+        function useSpecial() {
+            if (gameData.player.energy < 20) {
+                showNotification('⚡ Energia insuficiente!');
+                return;
+            }
+            
+            gameData.player.energy -= 20;
+            const damage = Math.floor(gameData.player.stats.strength * 2);
+            gameData.battle.currentEnemy.currentHealth -= damage;
+            
+            showNotification(`✨ Ataque especial! ${damage} de dano!`);
+            
+            if (gameData.battle.currentEnemy.currentHealth <= 0) {
+                winBattle();
+            } else {
+                gameData.battle.playerTurn = false;
+                setTimeout(enemyTurn, 1500);
+            }
+            
+            updatePlayerUI();
+            openTab('battle');
+        }
+
+        // Sistema de level up
+        function checkLevelUp() {
+            while (gameData.player.exp >= gameData.player.maxExp) {
+                gameData.player.exp -= gameData.player.maxExp;
+                gameData.player.level++;
+                gameData.player.maxExp = Math.floor(gameData.player.maxExp * 1.2);
+                
+                // Aumentar stats
+                gameData.player.stats.strength += Math.floor(Math.random() * 5) + 2;
+                gameData.player.stats.defense += Math.floor(Math.random() * 3) + 1;
+                gameData.player.stats.speed += Math.floor(Math.random() * 4) + 1;
+                gameData.player.stats.accuracy += Math.floor(Math.random() * 3) + 1;
+                
+                // Aumentar HP e energia
+                gameData.player.maxHealth += Math.floor(Math.random() * 20) + 10;
+                gameData.player.maxEnergy += Math.floor(Math.random() * 10) + 5;
+                gameData.player.health = gameData.player.maxHealth;
+                gameData.player.energy = gameData.player.maxEnergy;
+                
+                showNotification(`🎉 LEVEL UP! Agora você é nível ${gameData.player.level}!`);
+                updateSeaAccess();
+            }
+        }
+
+        // Funções de interação
+        function teleportTo(island) {
+            const islands = {
+                'vulcao': { name: 'Ilha do Vulcão', icon: '🌋', level: '25-35' },
+                'gelo': { name: 'Ilha do Gelo', icon: '❄️', level: '40-50' },
+                'ceu': { name: 'Ilha do Céu', icon: '☁️', level: '60-70' },
+                'sombria': { name: 'Ilha Sombria', icon: '🌑', level: '80-90' }
+            };
+            
+            const selectedIsland = islands[island];
+            if (selectedIsland) {
+                showNotification(`🌊 Teleportando para ${selectedIsland.name}...`);
+                gameData.location.current = selectedIsland.name;
+                
+                // Atualizar interface
+                setTimeout(() => {
+                    document.querySelector('.current-island').innerHTML = `
+                        <div class="island-image">${selectedIsland.icon}</div>
+                        <h3>${selectedIsland.name}</h3>
+                        <p>Nível Recomendado: ${selectedIsland.level}</p>
+                        <p>Explorando nova área...</p>
+                    `;
+                    showNotification(`✅ Chegou em ${selectedIsland.name}!`);
+                }, 2000);
+            }
+        }
+
+        function spinFruit() {
+            if (gameData.player.berries < 10000) {
+                showNotification('💰 Berries insuficientes! Precisa de 10,000 Berries.');
+                return;
+            }
+            
+            gameData.player.berries -= 10000;
+            updateCurrency();
+            
+            const spinBtn = document.getElementById('spinBtn');
+            const wheel = document.getElementById('fruitWheel');
+            
+            spinBtn.disabled = true;
+            spinBtn.textContent = 'Girando...';
+            
+            // Animação da roda
+            const rotations = Math.random() * 360 + 1440; // 4+ voltas
+            wheel.style.transform = `rotate(${rotations}deg)`;
+            
+            setTimeout(() => {
+                const fruits = [
+                    { name: 'Moku Moku no Mi', icon: '💨', rarity: 'Comum' },
+                    { name: 'Suna Suna no Mi', icon: '🏜️', rarity: 'Rara' },
+                    { name: 'Mera Mera no Mi', icon: '🔥', rarity: 'Lendária' },
+                    { name: 'Hie Hie no Mi', icon: '❄️', rarity: 'Lendária' },
+                    { name: 'Pika Pika no Mi', icon: '💡', rarity: 'Mítica' }
+                ];
+                
+                const randomFruit = fruits[Math.floor(Math.random() * fruits.length)];
+                showNotification(`🎉 Você ganhou: ${randomFruit.name} ${randomFruit.icon}!`);
+                
+                spinBtn.disabled = false;
+                spinBtn.textContent = '🎲 Girar (10,000 Berries)';
+                wheel.style.transform = 'rotate(0deg)';
+            }, 3000);
+        }
+
+        function redeemCode() {
+            const codeInput = document.getElementById('codeInput');
+            const code = codeInput.value.trim().toUpperCase();
+            
+            const codes = {
+                'NEWPLAYER': { berries: 100000, message: '💰 +100,000 Berries!' },
+                'FREEFRUIT': { fruit: true, message: '🍎 Fruta Aleatória Recebida!' },
+                'POWERUP': { exp: 50000, message: '✨ +50,000 EXP!' }
+            };
+            
+            if (codes[code]) {
+                const reward = codes[code];
+                if (reward.berries) gameData.player.berries += reward.berries;
+                if (reward.exp) gameData.player.exp += reward.exp;
+                
+                showNotification(`✅ Código resgatado! ${reward.message}`);
+                updateCurrency();
+                codeInput.value = '';
+            } else {
+                showNotification('❌ Código inválido ou expirado!');
+            }
+        }
+
+        function upgradeStats() {
+            const cost = 25000;
+            if (gameData.player.berries >= cost) {
+                gameData.player.berries -= cost;
+                
+                // Aumentar stats aleatoriamente
+                const stats = ['strength', 'defense', 'speed', 'accuracy'];
+                const randomStat = stats[Math.floor(Math.random() * stats.length)];
+                gameData.player.stats[randomStat] += Math.floor(Math.random() * 20) + 10;
+                
+                showNotification(`⬆️ ${randomStat.toUpperCase()} aumentou!`);
+                updateCurrency();
+                updateStats();
+            } else {
+                showNotification('💰 Berries insuficientes!');
+            }
+        }
+
+        // Funções auxiliares
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 4000);
+        }
+
+        function updateCurrency() {
+            document.querySelector('.currency-info').innerHTML = `
+                <div class="currency-item">
+                    <div style="font-size: 24px;">💰</div>
+                    <div><strong>${gameData.player.berries.toLocaleString()}</strong></div>
+                    <div>Berries</div>
+                </div>
+                <div class="currency-item">
+                    <div style="font-size: 24px;">💎</div>
+                    <div><strong>${gameData.player.gems}</strong></div>
+                    <div>Gems</div>
+                </div>
+                <div class="currency-item">
+                    <div style="font-size: 24px;">🏆</div>
+                    <div><strong>${(gameData.player.bounty / 1000000).toFixed(1)}M</strong></div>
+                    <div>Bounty</div>
+                </div>
+            `;
+        }
+
+        function updateStats() {
+            // Atualizar painel de estatísticas se estiver visível
+            const statsPanel = document.querySelector('.right-panel .panel:nth-child(2)');
+            if (statsPanel) {
+                statsPanel.innerHTML = `
+                    <h2>📊 Estatísticas</h2>
+                    <div style="display: grid; gap: 10px;">
+                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span>💪 Força:</span>
+                            <span style="color: #ffd700;"><strong>${gameData.player.stats.strength}</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span>🛡️ Defesa:</span>
+                            <span style="color: #ffd700;"><strong>${gameData.player.stats.defense}</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span>⚡ Velocidade:</span>
+                            <span style="color: #ffd700;"><strong>${gameData.player.stats.speed}</strong></span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 5px;">
+                            <span>🎯 Precisão:</span>
+                            <span style="color: #ffd700;"><strong>${gameData.player.stats.accuracy}</strong></span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="spin-btn" onclick="upgradeStats()" style="width: 100%; padding: 10px;">
+                            ⬆️ Melhorar Stats
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeGame();
+            showNotification('🌊 Bem-vindo ao Ocean Legends Dashboard!');
+            
+            // Regenerar energia automaticamente
+            setInterval(() => {
+                if (gameData.player.energy < gameData.player.maxEnergy) {
+                    gameData.player.energy = Math.min(gameData.player.maxEnergy, gameData.player.energy + 1);
+                    updatePlayerUI();
+                }
+            }, 5000);
+            
+            // Simular atividade online
+            setInterval(() => {
+                const activities = [
+                    '🏴‍☠️ Novo pirata chegou ao servidor',
+                    '💰 Tesouro encontrado na ilha!',
+                    '🍎 Fruta rara apareceu!',
+                    '⚔️ Boss foi derrotado!',
+                    '🌊 Evento especial ativo!'
+                ];
+                
+                const randomActivity = activities[Math.floor(Math.random() * activities.length)];
+                showNotification(randomActivity);
+            }, 20000);
+        });
+
+        // Funções placeholder para outras interações
+        function equipFruit(name) { showNotification(`🍎 ${name} equipada!`); }
+        function equipWeapon(name) { showNotification(`⚔️ ${name} equipada!`); }
+        function buyItem(item, price) { 
+            if (gameData.player.berries >= price) {
+                gameData.player.berries -= price;
+                updateCurrency();
+                showNotification(`🛒 Item comprado!`);
+            } else {
+                showNotification('💰 Berries insuficientes!');
+            }
+        }
+        function acceptQuest(quest) { showNotification(`📜 Quest aceita!`); }
+        function trainHaki(type) { showNotification(`⚡ Treinando ${type} Haki!`); }
+        function learnFighting(style) { showNotification(`🥊 Aprendendo ${style}!`); }
+        function openCrewPanel() { showNotification('👥 Abrindo painel da crew...'); }
+        function changeEquipment(type) { showNotification(`🎒 Mudando ${type}...`); }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97db7c7016a62496',t:'MTc1NzYzOTAxNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
